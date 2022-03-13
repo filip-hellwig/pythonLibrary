@@ -29,25 +29,43 @@ class Library:
 
     # adds book to dictonary, without argument
     def addBook(self):
-        book = self.Book()
-        book.title = input("Title: ")
-        book.author = input("Author: ")
-        book.date = input("Date: ")
-        book.category = input("Category: ")
+        title = input("Title: ")
+        author = input("Author: ")
+        date = input("Date: ")
+        category = input("Category: ")
+
+        f = open("books.txt", "a")
+        f.write(f"\n{title}, {author}, {date}, {category}")
+        f.close()
+
         self.numberOfBooks += 1
-        book.number = self.numberOfBooks - 1
-        self.books[book.number] = book
+        number = self.numberOfBooks - 1
+        self.books[number] = self.Book(title, author, date, category, number)
 
     # adds book to dictonary, with argument
     def addBook2(self, list):
-        book = self.Book()
-        book.title = list[0]
-        book.author = list[1]
-        book.date = list[2]
-        book.category = list[3]
+        title = list[0]
+        author = list[1]
+        date = list[2]
+        category = list[3]
+
+        f = open("books.txt", "a")
+        f.write(f"\n{title}, {author}, {date}, {category}")
+        f.close()
+
         self.numberOfBooks += 1
-        book.number = self.numberOfBooks - 1
-        self.books[book.number] = book
+        number = self.numberOfBooks - 1
+        self.books[number] = self.Book(title, author, date, category, number)
+
+    # adds book to dictonary, with argument, without appending file
+    def addBook3(self, list):
+        title = list[0]
+        author = list[1]
+        date = list[2]
+        category = list[3]
+        self.numberOfBooks += 1
+        number = self.numberOfBooks - 1
+        self.books[number] = self.Book(title, author, date, category, number)
 
     # adds many books to dictonary, from a file
     def addManyBooks(self, file):
@@ -63,30 +81,63 @@ class Library:
         except:
             print("File error")
             return
-            
+
+    # load book database
+    def loadBooks(self, file):
+        try:
+            f = open(file)
+
+            for line in f:
+                line = line.replace("\n", "")
+                newBook = line.split(", ")
+                self.addBook3(newBook)
+
+            f.close()
+        except:
+            print("File error")
+            return
+          
     # adds reader to dictonary, without argument
     def addReader(self):
-        reader = self.Reader()
-        reader.name = input("Name: ")
-        reader.surname = input("Surname: ")
-        reader.age = input("Age: ")
+        name = input("Name: ")
+        surname = input("Surname: ")
+        age = input("Age: ")
+        books = []
+
+        f = open("readers.txt", "a")
+        f.write(f"\n{name}, {surname}, {age}")
+        f.close()
 
         self.numberOfReaders += 1
-        reader.number = self.numberOfReaders - 1
-        self.readers[reader.number] = reader
+        number = self.numberOfReaders - 1
+        self.readers[number] = self.Reader(name, surname, age, number, books)
 
     # adds reader to dictonary, wtih argument
     def addReader2(self, list):
-        reader = self.Reader()
-        reader.name = list[0]
-        reader.surname = list[1]
-        reader.age = list[2]
-        reader.books = []
+        name = list[0]
+        surname = list[1]
+        age = list[2]
+        books = []
+
+        f = open("readers.txt", "a")
+        f.write(f"\n{name}, {surname}, {age}")
+        f.close()
 
         self.numberOfReaders += 1
-        reader.number = self.numberOfReaders - 1
-        self.readers[reader.number] = reader
+        number = self.numberOfReaders - 1
+        self.readers[number] = self.Reader(name, surname, age, number, books)
 
+    # adds reader to dictonary, wtih argument, without appending file
+    def addReader3(self, list):
+        name = list[0]
+        surname = list[1]
+        age = list[2]
+        books = []
+
+        self.numberOfReaders += 1
+        number = self.numberOfReaders - 1
+        self.readers[number] = self.Reader(name, surname, age, number, books)
+   
     # adds many readers, from file
     def addManyReaders(self, file):
         try:
@@ -102,17 +153,46 @@ class Library:
             print("File error")
             return
 
+    # loads reader database
+    def loadReaders(self, file):
+        try:
+            f = open(file)
+
+            for line in f:
+                line = line.replace("\n", "")
+                newReader = line.split(", ")
+                self.addReader3(newReader)
+
+            f.close()
+        except:
+            print("File error")
+            return
+
     # search for a book by title
     def searchBookTitle(self, title):
         for i in self.books:
-            if self.books[i].title == title:
+            if self.books[i].getTitle() == title:
+                return i
+        return -1
+
+    #search for a book by number
+    def searchBookNumber(self, number):
+        for i in self.books:
+            if self.books[i].getNumber() == int(number):
                 return i
         return -1
     
     # search for a reader by surname
     def searchReaderSurname(self, surname):
         for i in self.readers:
-            if self.readers[i].surname == surname:
+            if self.readers[i].getSurname() == surname:
+                return i
+        return -1
+
+    # search for a reader by number
+    def searchReaderNumber(self, number):
+        for i in self.readers:
+            if self.readers[i].getNumber() == int(number):
                 return i
         return -1
 
@@ -128,6 +208,39 @@ class Library:
         indexBook = self.searchBookTitle(whichBook)
         if indexBook == -1:
             print("Book does not exist")
+            return
+
+        if self.books[indexBook].getBorrowed() == True:
+            print("This book is unavaiable")
+            return
+
+        if len(self.readers[indexReader].books) == 2:
+            print("You can only have 2 books")
+            return
+
+        self.books[indexBook].borrow()
+        self.readers[indexReader].borrow(indexBook)
+
+    # lets reader borrow book by index numbers
+    def borrowBookNumber(self):
+        who = input("Reader number: ")
+        indexReader = self.searchReaderNumber(who)
+        if indexReader == -1:
+            print("Reader does not exist")
+            return
+
+        whichBook = input("Book number: ")
+        indexBook = self.searchBookNumber(whichBook)
+        if indexBook == -1:
+            print("Book does not exist")
+            return
+
+        if self.books[indexBook].getBorrowed() == True:
+            print("This book is unavaiable")
+            return
+
+        if len(self.readers[indexReader].books) == 2:
+            print("You can only have 2 books")
             return
 
         self.books[indexBook].borrow()
@@ -150,20 +263,37 @@ class Library:
         if self.readers[indexReader].giveBack(indexBook) != -1:
             self.books[indexBook].giveBack()
 
-    # information about one book
-    def bookInfo(self):
-        whichBook = input("Title: ")
-        indexBook = self.searchBookTitle(whichBook)
+    # allows to give back book by index number
+    def giveBackBookNumber(self):
+        who = input("Reader number: ")
+        indexReader = self.searchReaderNumber(who)
+        if indexReader == -1:
+            print("Reader does not exist")
+            return
+        
+        whichBook = input("Book number: ")
+        indexBook = self.searchBookNumber(whichBook)
+        if indexBook == -1:
+            print("Book does not exist")
+            return
+        
+        if self.readers[indexReader].giveBack(indexBook) != -1:
+            self.books[indexBook].giveBack()
+
+    # information about one book by number
+    def bookInfoNumber(self):
+        whichBook = input("Number: ")
+        indexBook = self.searchBookNumber(whichBook)
         if indexBook == -1:
             print("Book does not exist")
             return
             
         self.books[indexBook].printInfo()
 
-    # information about one reader
-    def readerInfo(self):
-        who = input("Surname: ")
-        indexReader = self.searchReaderSurname(who)
+    # information about one reader by number
+    def readerInfoNumber(self):
+        who = input("Number: ")
+        indexReader = self.searchReaderNumber(who)
         if indexReader == -1:
             print("Reader does not exist")
             return
@@ -171,14 +301,19 @@ class Library:
         toRead = self.readers[indexReader].printInfo()
         print(f"Borrowed books:")
         for books in toRead:
-            print(f"{self.books[books].title}") 
+            print(f"{self.books[books].getTitle()}") 
         
-
+    # information about all books in category
+    def allBooksInCategory(self):
+        category = input("Enter category: ")
+        for i in self.books:
+            if self.books[i].getCategory() == category:
+                self.books[i].printInfo()
 
     class Book:
 
         # initialization
-        def __init__(self, title = None, author = None, date = None, category = None, isBorrowed = False, number = 0):
+        def __init__(self, title = None, author = None, date = None, category = None, number = 0, isBorrowed = False):
             self.title = title
             self.author = author
             self.date = date
@@ -201,6 +336,21 @@ class Library:
         def giveBack(self):
             self.isBorrowed = False
 
+        # gets title
+        def getTitle(self):
+            return self.title
+
+        # gets number
+        def getNumber(self):
+            return self.number
+
+        # gets is borrowed
+        def getBorrowed(self):
+            return self.isBorrowed
+        
+        # gets is borrowed
+        def getCategory(self):
+            return self.category
 
 
     class Reader:
@@ -215,7 +365,7 @@ class Library:
 
         # print info about reader
         def printInfo(self):
-            print(f"{self.name} {self.surname}, age: {self.age}")
+            print(f"{self.number}. {self.name} {self.surname}, age: {self.age}")
             return self.books
 
         # user has borrowed this book
@@ -231,6 +381,13 @@ class Library:
                 print("Reader does not have this book")
                 return -1
 
+        # gets surname
+        def getSurname(self):
+            return self.surname
+
+        # gets number
+        def getNumber(self):
+            return self.number
 
 
 # options for menu
@@ -260,6 +417,16 @@ def menuOption(option, branch):
         branch.bookInfo()
     elif option == '10':
         branch.readerInfo()
+    elif option == '11':
+        branch.borrowBookNumber()
+    elif option == '12':
+        branch.giveBackBookNumber()
+    elif option == '13':
+        branch.bookInfoNumber()
+    elif option == '14':
+        branch.readerInfoNumber()
+    elif option == '15':
+        branch.allBooksInCategory()
     else:
         print("Wrong option...")
 
@@ -275,14 +442,19 @@ def menuInfo():
     print("8. Print all readers")
     print("9. Book info")
     print("10. Reader info")
+    print("11. Borrow book by number")
+    print("12. Give back book by number")
+    print("13. Book info by number")
+    print("14. Reader info by number")
+    print("15. All books in category")
     print("0. Exit")
 
 
 # main
 print("\n\n")
 filia1 = Library('Filia', 'Wrocław', 1)
-filia1.addManyBooks("books.txt")
-filia1.addManyReaders("readers.txt")
+filia1.loadBooks("books.txt")
+filia1.loadReaders("readers.txt")
 filia1.printInfo()
 
 while 1:
