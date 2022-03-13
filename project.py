@@ -280,6 +280,16 @@ class Library:
         if self.readers[indexReader].giveBack(indexBook) != -1:
             self.books[indexBook].giveBack()
 
+    # information about one book
+    def bookInfo(self):
+        whichBook = input("Title: ")
+        indexBook = self.searchBookTitle(whichBook)
+        if indexBook == -1:
+            print("Book does not exist")
+            return
+            
+        self.books[indexBook].printInfo()
+
     # information about one book by number
     def bookInfoNumber(self):
         whichBook = input("Number: ")
@@ -289,6 +299,19 @@ class Library:
             return
             
         self.books[indexBook].printInfo()
+
+    # information about one reader by number
+    def readerInfo(self):
+        who = input("Surname: ")
+        indexReader = self.searchReaderSurname(who)
+        if indexReader == -1:
+            print("Reader does not exist")
+            return
+
+        toRead = self.readers[indexReader].printInfo()
+        print(f"Borrowed books:")
+        for books in toRead:
+            print(f"{self.books[books].getTitle()}") 
 
     # information about one reader by number
     def readerInfoNumber(self):
